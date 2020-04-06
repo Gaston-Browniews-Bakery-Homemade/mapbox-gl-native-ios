@@ -301,7 +301,12 @@ private:
     if (!completion) {
         return;
     }
-    if (!mbgl::Scheduler::GetCurrent()) {
+    
+    // Ensure that offline storage has been initialized on the main thread, as MGLMapView and MGLOfflineStorage do when used directly.
+    // https://github.com/mapbox/mapbox-gl-native-ios/issues/227
+    if ([NSThread.currentThread isMainThread]) {
+        (void)[MGLOfflineStorage sharedOfflineStorage];
+    } else {
         [NSException raise:NSInvalidArgumentException
                     format:@"startWithQueue:completionHandler: must be called from a thread with an active run loop."];
     }
